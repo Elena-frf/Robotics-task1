@@ -303,6 +303,7 @@ set(APPLICATION_SOURCES
     application/cmd/command_router.c
     application/runtime/app_manifest.c
     application/runtime/app_runtime.c
+    application/shoot/auto_shoot_controller.c
     application/shoot/shooter_controller.c
     application/gimbal/gimbal_controller.c
 )

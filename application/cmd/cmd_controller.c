@@ -3,6 +3,7 @@
  * publishes it. Mode policy stays in command_router.c; no motor is driven here.
  */
 #include "cmd_controller.h"
+#include "auto_shoot_controller.h"
 #include "command_router.h"
 #include "logger.h"
 #include "message_center.h"
@@ -11,6 +12,7 @@
 static CommandRouterInput s_input;
 static CommandRouterOutput s_output;
 static CommandRouter s_router;
+static AutoShootController s_auto_shoot;
 static bool s_initialized = false;
 static bool s_remote_updated;
 static bool s_remote_seen;
@@ -52,6 +54,7 @@ void CmdController_Init(void) {
     s_remote_seen = false;
     s_last_remote_ms = 0U;
     CommandRouter_Init(&s_router);
+    AutoShootController_Init(&s_auto_shoot);
 
     (void)MsgCenter_Subscribe(TOPIC_RC_UPDATE, on_rc_update, NULL);
     (void)MsgCenter_Subscribe(TOPIC_IMU_UPDATE, on_imu_update, NULL);
@@ -96,6 +99,17 @@ void CmdController_Task(uint32_t current_tick) {
             s_output.chassis.vx,
             s_output.chassis.vy,
             s_output.chassis.wz);
+
+    /* Remote loss outranks automatic firing and restores the safe zero command. */
+    if (!s_input.remote_online) {
+        AutoShootController_Reset(&s_auto_shoot);
+    } else if ((s_input.remote.key.v & KEY_PRESSED_OFFSET_Q) != 0U ||
+               s_auto_shoot.state != AUTO_SHOOT_IDLE) {
+        AutoShootController_Update(&s_auto_shoot,
+                                   &s_input.remote,
+                                   current_tick,
+                                   &s_output.shooter);
+    }
 
     (void)MsgCenter_Publish(TOPIC_CHASSIS_CMD,
                             &s_output.chassis,

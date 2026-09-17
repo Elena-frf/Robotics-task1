@@ -71,6 +71,13 @@ common_flags="-std=c11 -Wall -Wextra -Werror"
   -o "$test_build/test_command_router"
 
 "$cc" $common_flags \
+  -I"$repo_root/application/shoot" \
+  -I"$repo_root/core/contracts" \
+  "$repo_root/application/shoot/auto_shoot_controller.c" \
+  "$repo_root/tests/host/test_auto_shoot_controller.c" \
+  -o "$test_build/test_auto_shoot_controller"
+
+"$cc" $common_flags \
   -I"$repo_root/adapters/motor" \
   -I"$repo_root/bsp/can" \
   -I"$repo_root/bsp/time" \
@@ -110,6 +117,7 @@ done
 "$test_build/test_contract_sizes"
 "$test_build/test_motor_protocols"
 "$test_build/test_command_router"
+"$test_build/test_auto_shoot_controller"
 "$test_build/test_motor_adapters"
 "$test_build/test_robot_config_infantry_standard"
 "$test_build/test_robot_config_sentry_swerve"
